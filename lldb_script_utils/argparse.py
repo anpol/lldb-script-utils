@@ -10,7 +10,7 @@ from typing import Optional, Tuple, Type, Callable, Any
 
 import lldb
 
-from lldb_script_utils.core import LLDBCommand
+from lldb_script_utils.abc import LLDBCommand
 
 DEFAULT_SUBCOMMANDS_TITLE = _('The following subcommands are supported')
 DEFAULT_SUBCOMMANDS_METAVAR = _('<subcommand>')
