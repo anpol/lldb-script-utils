@@ -100,6 +100,7 @@ class LLDBArgumentParser(ArgumentParser):
             self,
             prog: str,
             help: str = '',  # pylint: disable=redefined-builtin
+            *,
             add_help: bool = False,  # A default for a non-subcommand.
             **kwargs):
         """Initialize an argument parser."""
@@ -155,6 +156,7 @@ class LLDBArgumentParser(ArgumentParser):
         def add_subparser(
                 name: str,
                 help: str,  # pylint: disable=redefined-builtin
+                *,
                 description: Optional[str] = None,
                 add_help=True,  # A default for subcommand
                 **kwargs: Any) -> ArgumentParser:

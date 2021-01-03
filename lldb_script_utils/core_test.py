@@ -33,28 +33,33 @@ class CoreTest(unittest.TestCase):
 
     def test_format_command_script_add(self):
         self.assertEqual(
-            f'command script add -f {TEST_FUNCTION} {TEST_COMMAND}',
+            f'command script add --function {TEST_FUNCTION} {TEST_COMMAND}',
             format_command_script_add(TEST_COMMAND, _test_function))
         self.assertEqual(
-            f'command script add -f {TEST_FUNCTION} ' +
-            f"-h '{TEST_HELP}' {TEST_COMMAND}",
-            format_command_script_add(TEST_COMMAND, _test_function, TEST_HELP))
+            f'command script add --function {TEST_FUNCTION} ' +
+            f"--help '{TEST_HELP}' {TEST_COMMAND}",
+            format_command_script_add(TEST_COMMAND,
+                                      _test_function,
+                                      help=TEST_HELP))
         self.assertEqual(
-            f'command script add -f {TEST_FUNCTION} ' +
-            f"-h '{TEST_HELP}' -s synchronous {TEST_COMMAND}",
-            format_command_script_add(TEST_COMMAND, _test_function, TEST_HELP,
-                                      'synchronous'))
+            f'command script add --function {TEST_FUNCTION} ' +
+            f"--help '{TEST_HELP}' --synchronicity synchronous {TEST_COMMAND}",
+            format_command_script_add(TEST_COMMAND,
+                                      _test_function,
+                                      help=TEST_HELP,
+                                      synchronicity='synchronous'))
         self.assertEqual(
-            f'command script add -f {TEST_FUNCTION} ' +
-            f'-s asynchronous {TEST_COMMAND}',
+            f'command script add --function {TEST_FUNCTION} ' +
+            f'--synchronicity asynchronous {TEST_COMMAND}',
             format_command_script_add(TEST_COMMAND,
                                       _test_function,
                                       synchronicity='asynchronous'))
-        self.assertEqual(f'command script add -c {TEST_CLASS} {TEST_COMMAND}',
-                         format_command_script_add(TEST_COMMAND, _TestClass))
         self.assertEqual(
-            f'command script add -c {TEST_CLASS}.Inner ' +
-            f'-s current {TEST_COMMAND}',
+            f'command script add --class {TEST_CLASS} {TEST_COMMAND}',
+            format_command_script_add(TEST_COMMAND, _TestClass))
+        self.assertEqual(
+            f'command script add --class {TEST_CLASS}.Inner ' +
+            f'--synchronicity current {TEST_COMMAND}',
             format_command_script_add(TEST_COMMAND,
                                       _TestClass.Inner,
                                       synchronicity='current'))
