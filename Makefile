@@ -22,13 +22,13 @@ all: format lint test
 deps:
 	pip install -r requirements.txt
 
-deps-devel:
+deps-devel: deps
 	pip install -r requirements-devel.txt
 
-init: deps
+init:
 
 ifdef VIRTUAL_ENV
-init:	deps-devel edit
+init: deps-devel edit
 endif
 
 edit:
