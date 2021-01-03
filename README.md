@@ -1,6 +1,6 @@
 <!-- vim:spell -->
 
-# lldb-command-script-utils
+# lldb-script-utils
 
 This Python package provides functions and classes to support implementations
 of custom LLDB commands.
@@ -17,7 +17,7 @@ This repository is meant to be a submodule of
 You also have an option to clone this repository and add the following line
 into your `~/.lldbinit` file:
 ```
-command script import <path-to-repository>/lldb_command_script_utils
+command script import <path-to-repository>/lldb_script_utils
 ```
 
 ## Quick Start
@@ -28,8 +28,8 @@ To create an LLDB command with this package, you need to subclass the
 ```python
 import lldb
 from argparse import ArgumentParser
-from lldb_command_script_utils.argparse import LLDBArgumentParser
-from lldb_command_script_utils.core import format_command_script_add
+from lldb_script_utils.argparse import LLDBArgumentParser
+from lldb_script_utils.core import format_command_script_add
 
 
 class TestCommand1(LLDBArgumentParser.Command):

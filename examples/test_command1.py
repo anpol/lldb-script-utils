@@ -2,8 +2,8 @@
 
 import lldb
 from argparse import ArgumentParser
-from lldb_command_script_utils.argparse import LLDBArgumentParser
-from lldb_command_script_utils.core import format_command_script_add
+from lldb_script_utils.argparse import LLDBArgumentParser
+from lldb_script_utils.core import format_command_script_add
 
 
 def __lldb_init_module(debugger: lldb.SBDebugger, _: dict) -> None:
