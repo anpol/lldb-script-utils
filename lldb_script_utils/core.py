@@ -5,6 +5,8 @@ import shlex
 from types import FunctionType
 from typing import Optional, Literal, Union, Callable
 
+import lldb
+
 
 def format_fully_qualified_type_name(
         type_object: Union[Callable, type]) -> str:
@@ -36,4 +38,90 @@ def format_command_script_add(
     if synchronicity is not None:
         result += ['--synchronicity', synchronicity]
     result.append(command_name)
+    return ' '.join(result)
+
+
+def format_type_summary_add(*type_names: str,
+                            inline_children: bool = False,
+                            omit_names: bool = False,
+                            expand: bool = False,
+                            hide_empty: bool = False,
+                            skip_pointers: bool = False,
+                            skip_references: bool = False,
+                            no_value: bool = False,
+                            regex: bool = False,
+                            summary_string: Optional[str] = None,
+                            cascade: Optional[bool] = None,
+                            python_function: Optional[Callable[
+                                [lldb.SBValue, dict], str]] = None,
+                            python_script: Optional[str] = None,
+                            category: Optional[str] = None,
+                            name: Optional[str] = None) -> str:
+    """Formats a `type summary add` command line for use with LLDB."""
+    result = ['type summary add']
+    if inline_children:
+        result.append('--inline-children')
+    if omit_names:
+        result.append('--omit-names')
+    if expand:
+        result.append('--expand')
+    if hide_empty:
+        result.append('--hide-empty')
+    if skip_pointers:
+        result.append('--skip-pointers')
+    if skip_references:
+        result.append('--skip-references')
+    if no_value:
+        result.append('--no-value')
+    if regex:
+        result.append('--regex')
+    if summary_string is not None:
+        result.append('--summary-string')
+        result.append(shlex.quote(summary_string))
+    if cascade is not None:
+        result.append('--cascade')
+        result.append(str(cascade).lower())
+    if python_function is not None:
+        result.append('--python-function')
+        result.append(format_fully_qualified_type_name(python_function))
+    if python_script is not None:
+        result.append('--python-script')
+        result.append(shlex.quote(python_script))
+    if category is not None:
+        result.append('--category')
+        result.append(shlex.quote(category))
+    if name is not None:
+        result.append('--name')
+        result.append(shlex.quote(name))
+    for type_name in type_names:
+        result.append(shlex.quote(type_name))
+    return ' '.join(result)
+
+
+def format_type_synthetic_add(*type_names: str,
+                              skip_pointers: bool = False,
+                              skip_references: bool = False,
+                              regex: bool = False,
+                              cascade: Optional[bool] = None,
+                              category: Optional[str] = None,
+                              python_class: Optional[type] = None) -> str:
+    """Formats a `type synthetic add` command line for use with LLDB."""
+    result = ['type synthetic add']
+    if skip_pointers:
+        result.append('--skip-pointers')
+    if skip_references:
+        result.append('--skip-references')
+    if regex:
+        result.append('--regex')
+    if cascade is not None:
+        result.append('--cascade')
+        result.append(str(cascade).lower())
+    if category is not None:
+        result.append('--category')
+        result.append(shlex.quote(category))
+    if python_class is not None:
+        result.append('--python-class')
+        result.append(format_fully_qualified_type_name(python_class))
+    for type_name in type_names:
+        result.append(shlex.quote(type_name))
     return ' '.join(result)
