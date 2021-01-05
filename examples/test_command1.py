@@ -3,7 +3,7 @@
 import lldb
 from argparse import ArgumentParser
 from lldb_script_utils.argparse import LLDBArgumentParser
-from lldb_script_utils.debugger_utils import format_command_script_add
+from lldb_script_utils import debugger_utils
 
 
 def __lldb_init_module(debugger: lldb.SBDebugger, _: dict) -> None:
@@ -18,7 +18,7 @@ class TestCommand1(LLDBArgumentParser.Command):
 
     @classmethod
     def lldb_init_class(cls, debugger: lldb.SBDebugger) -> None:
-        debugger.HandleCommand(format_command_script_add(cls.NAME, cls))
+        debugger_utils.handle_command_script_add(debugger, cls.NAME, cls)
 
     def create_args_parser(self, debugger: lldb.SBDebugger,
                            bindings: dict) -> ArgumentParser:

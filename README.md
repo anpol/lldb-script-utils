@@ -29,13 +29,21 @@ To create an LLDB command with this package, you need to subclass the
 import lldb
 from argparse import ArgumentParser
 from lldb_script_utils.argparse import LLDBArgumentParser
-from lldb_script_utils.debugger_utils import format_command_script_add
+from lldb_script_utils import debugger_utils
+
+
+def __lldb_init_module(debugger: lldb.SBDebugger, _: dict) -> None:
+    TestCommand1.lldb_init_class(debugger)
 
 
 class TestCommand1(LLDBArgumentParser.Command):
     """A test command with an argument."""
     NAME = 'testCommand1'
     HELP = 'Help on testCommand1.'
+
+    @classmethod
+    def lldb_init_class(cls, debugger: lldb.SBDebugger) -> None:
+        debugger_utils.handle_command_script_add(debugger, cls.NAME, cls)
 
     def create_args_parser(self, debugger: lldb.SBDebugger,
                            bindings: dict) -> ArgumentParser:
@@ -50,12 +58,7 @@ class TestCommand1(LLDBArgumentParser.Command):
         print(f'The answer is {magic_number}')
 ```
 
-Then you need to register your command with LLDB:
-```python
-def __lldb_init_module(debugger: lldb.SBDebugger, _: dict) -> None:
-    debugger.HandleCommand(
-        format_command_script_add(TestCommand1.NAME, TestCommand1))
-```
+The example above also demonstrates how to register your command with LLDB.
 
 Assuming the file is saved as
 [examples/test_command1.py](examples/test_command1.py), you can import it into

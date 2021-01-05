@@ -19,15 +19,16 @@ def format_fully_qualified_type_name(
 
 
 # noinspection PyShadowingBuiltins
-def format_command_script_add(
+def handle_command_script_add(
+    debugger: lldb.SBDebugger,
     command_name: str,
     command_handler: Union[Callable, type],
     *,
     help: Optional[str] = None,  # pylint: disable=redefined-builtin
     synchronicity: Optional[Literal['synchronous', 'asynchronous',
                                     'current']] = None
-) -> str:
-    """Formats a `command script add` command line for use with LLDB."""
+) -> None:
+    """Make the debugger handle a formatted `command script add` command."""
     result = [
         'command script add', '--function' if isinstance(
             command_handler, FunctionType) else '--class',
@@ -38,10 +39,11 @@ def format_command_script_add(
     if synchronicity is not None:
         result += ['--synchronicity', synchronicity]
     result.append(command_name)
-    return ' '.join(result)
+    debugger.HandleCommand(' '.join(result))
 
 
-def format_type_summary_add(type_name: str,
+def handle_type_summary_add(debugger: lldb.SBDebugger,
+                            type_name: str,
                             *type_names: str,
                             inline_children: bool = False,
                             omit_names: bool = False,
@@ -57,8 +59,8 @@ def format_type_summary_add(type_name: str,
                                 [lldb.SBValue, dict], str]] = None,
                             python_script: Optional[str] = None,
                             category: Optional[str] = None,
-                            name: Optional[str] = None) -> str:
-    """Formats a `type summary add` command line for use with LLDB."""
+                            name: Optional[str] = None) -> None:
+    """Make the debugger handle a formatted `type summary add` command."""
     result = ['type summary add']
     if inline_children:
         result.append('--inline-children')
@@ -96,18 +98,19 @@ def format_type_summary_add(type_name: str,
         result.append(shlex.quote(name))
     result.append(shlex.quote(type_name))
     result.extend(shlex.quote(type_name) for type_name in type_names)
-    return ' '.join(result)
+    debugger.HandleCommand(' '.join(result))
 
 
-def format_type_synthetic_add(type_name: str,
+def handle_type_synthetic_add(debugger: lldb.SBDebugger,
+                              type_name: str,
                               *type_names: str,
                               skip_pointers: bool = False,
                               skip_references: bool = False,
                               regex: bool = False,
                               cascade: Optional[bool] = None,
                               category: Optional[str] = None,
-                              python_class: Optional[type] = None) -> str:
-    """Formats a `type synthetic add` command line for use with LLDB."""
+                              python_class: Optional[type] = None) -> None:
+    """Make the debugger handle a formatted `type synthetic add` command."""
     result = ['type synthetic add']
     if skip_pointers:
         result.append('--skip-pointers')
@@ -126,4 +129,4 @@ def format_type_synthetic_add(type_name: str,
         result.append(format_fully_qualified_type_name(python_class))
     result.append(shlex.quote(type_name))
     result.extend(shlex.quote(type_name) for type_name in type_names)
-    return ' '.join(result)
+    debugger.HandleCommand(' '.join(result))

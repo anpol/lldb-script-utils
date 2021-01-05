@@ -9,7 +9,7 @@ from typing import Type
 import lldb
 
 from lldb_script_utils.argparse import LLDBArgumentParser
-from lldb_script_utils.debugger_utils import format_command_script_add
+from lldb_script_utils import debugger_utils
 
 TEST_PACKAGE = f'{__package__}.argparse_test'
 
@@ -34,7 +34,7 @@ class TestCommand1(LLDBArgumentParser.Command):
 
     @classmethod
     def lldb_init_class(cls, debugger: lldb.SBDebugger) -> None:
-        debugger.HandleCommand(format_command_script_add(cls.NAME, cls))
+        debugger_utils.handle_command_script_add(debugger, cls.NAME, cls)
 
     def create_args_parser(self, debugger: lldb.SBDebugger,
                            bindings: dict) -> ArgumentParser:
@@ -56,7 +56,7 @@ class TestCommand2(LLDBArgumentParser.Command):
 
     @classmethod
     def lldb_init_class(cls, debugger: lldb.SBDebugger) -> None:
-        debugger.HandleCommand(format_command_script_add(cls.NAME, cls))
+        debugger_utils.handle_command_script_add(debugger, cls.NAME, cls)
 
     def create_args_parser(self, debugger: lldb.SBDebugger,
                            bindings: dict) -> ArgumentParser:
