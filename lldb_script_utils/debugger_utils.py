@@ -41,7 +41,8 @@ def format_command_script_add(
     return ' '.join(result)
 
 
-def format_type_summary_add(*type_names: str,
+def format_type_summary_add(type_name: str,
+                            *type_names: str,
                             inline_children: bool = False,
                             omit_names: bool = False,
                             expand: bool = False,
@@ -93,12 +94,13 @@ def format_type_summary_add(*type_names: str,
     if name is not None:
         result.append('--name')
         result.append(shlex.quote(name))
-    for type_name in type_names:
-        result.append(shlex.quote(type_name))
+    result.append(shlex.quote(type_name))
+    result.extend(shlex.quote(type_name) for type_name in type_names)
     return ' '.join(result)
 
 
-def format_type_synthetic_add(*type_names: str,
+def format_type_synthetic_add(type_name: str,
+                              *type_names: str,
                               skip_pointers: bool = False,
                               skip_references: bool = False,
                               regex: bool = False,
@@ -122,6 +124,6 @@ def format_type_synthetic_add(*type_names: str,
     if python_class is not None:
         result.append('--python-class')
         result.append(format_fully_qualified_type_name(python_class))
-    for type_name in type_names:
-        result.append(shlex.quote(type_name))
+    result.append(shlex.quote(type_name))
+    result.extend(shlex.quote(type_name) for type_name in type_names)
     return ' '.join(result)
