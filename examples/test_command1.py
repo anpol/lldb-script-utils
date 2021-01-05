@@ -1,9 +1,9 @@
 """An example of a test command with an argument."""
 
 import lldb
-from argparse import ArgumentParser
-from lldb_script_utils.lldb_commands import LLDBArgumentParser
+
 from lldb_script_utils import debugger_utils
+from lldb_script_utils import lldb_commands
 
 
 def __lldb_init_module(debugger: lldb.SBDebugger, _: dict) -> None:
@@ -11,7 +11,7 @@ def __lldb_init_module(debugger: lldb.SBDebugger, _: dict) -> None:
     TestCommand1.lldb_init_class(debugger)
 
 
-class TestCommand1(LLDBArgumentParser.Command):
+class TestCommand1(lldb_commands.LLDBCommand):
     """A test command with an argument."""
     NAME = 'testCommand1'
     HELP = 'Help on testCommand1.'
@@ -21,11 +21,9 @@ class TestCommand1(LLDBArgumentParser.Command):
         debugger_utils.handle_command_script_add(debugger, cls.NAME, cls)
 
     def create_args_parser(self, debugger: lldb.SBDebugger,
-                           bindings: dict) -> ArgumentParser:
-        parser = LLDBArgumentParser(self.NAME, self.HELP)
-        parser.add_argument('magic_number',
-                            type=int,
-                            help='An answer to the question.')
+                           bindings: dict) -> lldb_commands.LLDBArgumentParser:
+        parser = lldb_commands.LLDBArgumentParser(self.NAME, self.HELP)
+        parser.add_argument('magic_number', type=int, help='Help on magic.')
         parser.set_command_handler(self._on_command1)
         return parser
 

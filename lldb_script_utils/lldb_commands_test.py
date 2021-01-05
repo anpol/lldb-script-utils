@@ -3,15 +3,14 @@
 
 import io
 import unittest
-from argparse import ArgumentParser
+import argparse
 from typing import Type
 
 import lldb
 
-from lldb_script_utils.lldb_commands import LLDBArgumentParser
-from lldb_script_utils import debugger_utils
+from lldb_script_utils import debugger_utils, lldb_commands
 
-TEST_PACKAGE = f'{__package__}.command_utils_test'
+TEST_PACKAGE = f'{__package__}.lldb_commands_test'
 
 
 def _create_debugger_for_testing() -> lldb.SBDebugger:
@@ -27,7 +26,7 @@ def __lldb_init_module(debugger: lldb.SBDebugger, _: dict) -> None:
     TestCommand2.lldb_init_class(debugger)
 
 
-class TestCommand1(LLDBArgumentParser.Command):
+class TestCommand1(lldb_commands.LLDBCommand):
     """A test command with an argument and an option."""
     NAME = 'testCommand1'
     HELP = 'Help on testCommand1.'
@@ -37,8 +36,8 @@ class TestCommand1(LLDBArgumentParser.Command):
         debugger_utils.handle_command_script_add(debugger, cls.NAME, cls)
 
     def create_args_parser(self, debugger: lldb.SBDebugger,
-                           bindings: dict) -> ArgumentParser:
-        parser = LLDBArgumentParser(self.NAME, self.HELP)
+                           bindings: dict) -> lldb_commands.LLDBArgumentParser:
+        parser = lldb_commands.LLDBArgumentParser(self.NAME, self.HELP)
         parser.add_argument('magic_number', type=int)
         parser.add_argument('--good-option', action='store_true')
         parser.set_command_handler(self._on_command1)
@@ -49,7 +48,7 @@ class TestCommand1(LLDBArgumentParser.Command):
               f'magic_number={magic_number} good_option={good_option}')
 
 
-class TestCommand2(LLDBArgumentParser.Command):
+class TestCommand2(lldb_commands.LLDBCommand):
     """A test command with a global option and two subcommands."""
     NAME = 'testCommand2'
     HELP = 'Help on testCommand2.'
@@ -59,8 +58,8 @@ class TestCommand2(LLDBArgumentParser.Command):
         debugger_utils.handle_command_script_add(debugger, cls.NAME, cls)
 
     def create_args_parser(self, debugger: lldb.SBDebugger,
-                           bindings: dict) -> ArgumentParser:
-        parser = LLDBArgumentParser(self.NAME, self.HELP)
+                           bindings: dict) -> lldb_commands.LLDBArgumentParser:
+        parser = lldb_commands.LLDBArgumentParser(self.NAME, self.HELP)
         parser.add_argument('--global-option', action='store_true')
         parser.add_subcommands(
             (self.Subcommand1, self._on_subcommand1),
@@ -68,14 +67,15 @@ class TestCommand2(LLDBArgumentParser.Command):
         )
         return parser
 
-    class Subcommand1(LLDBArgumentParser.Subcommand):
+    class Subcommand1(lldb_commands.LLDBSubcommand):
         """A subcommand with an option."""
         NAME = 'subcommand1'
         HELP = 'Help on subcommand1.'
 
         @classmethod
         def create_args_subparser(
-                cls, add_subparser: Type[ArgumentParser]) -> ArgumentParser:
+            cls, add_subparser: Type[argparse.ArgumentParser]
+        ) -> argparse.ArgumentParser:
             subparser = add_subparser(cls.NAME, cls.HELP)
             subparser.add_argument('--option1',
                                    action='store_true',
@@ -86,14 +86,15 @@ class TestCommand2(LLDBArgumentParser.Command):
         print(f'Hello from {self.NAME} {self.Subcommand1.NAME} ' +
               f'global_option={global_option} option1={option1}')
 
-    class Subcommand2(LLDBArgumentParser.Subcommand):
+    class Subcommand2(lldb_commands.LLDBSubcommand):
         """A subcommand with an option."""
         NAME = 'subcommand2'
         HELP = 'Help on subcommand2.'
 
         @classmethod
         def create_args_subparser(
-                cls, add_subparser: Type[ArgumentParser]) -> ArgumentParser:
+            cls, add_subparser: Type[argparse.ArgumentParser]
+        ) -> argparse.ArgumentParser:
             subparser = add_subparser(cls.NAME, cls.HELP)
             subparser.add_argument('--option2',
                                    action='store_true',

@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 """Arguments parser tailored to LLDB style of command line parsing."""
 
+import argparse
 import shlex
 import sys
 from abc import abstractmethod, ABC
-from argparse import ArgumentParser, ArgumentError
 from gettext import gettext as _
 from typing import Optional, Tuple, Type, Callable, Any
 
 import lldb
-
-from lldb_script_utils.abc import LLDBCommand
 
 DEFAULT_SUBCOMMANDS_TITLE = _('The following subcommands are supported')
 DEFAULT_SUBCOMMANDS_METAVAR = _('<subcommand>')
@@ -21,7 +19,7 @@ def _format_subcommands_epilog(subcommands_metavar: str) -> str:
         f'%(prog)s {subcommands_metavar} --help')
 
 
-def _capitalize_args_parser_strings(args_parser: ArgumentParser):
+def _capitalize_args_parser_strings(args_parser: argparse.ArgumentParser):
     """Capitalize certain strings in ArgumentParser.
 
     ArgumentParser provides human-readable strings, each starting with a
@@ -40,60 +38,11 @@ def _capitalize_args_parser_strings(args_parser: ArgumentParser):
                 break
 
 
-class LLDBArgumentParser(ArgumentParser):
+class LLDBArgumentParser(argparse.ArgumentParser):
     """An ArgumentParser that mimics the LLDB style of command line parsing.
 
-    Normally returned from `LLDBArgumentParser.Command.create_args_parser()`.
+    Normally returned from `LLDBCommand.create_args_parser()`.
     """
-    class Command(LLDBCommand):
-        """Command protocol.
-
-        A conforming subclass should provide `create_args_parser`.
-        """
-        def __init__(self, debugger: lldb.SBDebugger, bindings: dict):
-            """Creates an argument parser for this command object."""
-            super().__init__(debugger, bindings)
-            self.args_parser = self.create_args_parser(debugger=debugger,
-                                                       bindings=bindings)
-
-        def __call__(self, debugger: lldb.SBDebugger, command: str,
-                     execution_context: lldb.SBExecutionContext,
-                     command_return: lldb.SBCommandReturnObject) -> None:
-            """Parses a command string, and runs a command handler."""
-            try:
-                args = self.args_parser.parse_args(shlex.split(command))
-            except ArgumentError as err:
-                command_return.SetError(str(err))
-                return
-            if not hasattr(args, 'command_handler'):
-                self.args_parser.print_usage(file=sys.stderr)
-                return
-            args.command_handler(debugger=debugger,
-                                 execution_context=execution_context,
-                                 command_return=command_return,
-                                 **vars(args))
-
-        def get_short_help(self) -> str:
-            return self.args_parser.lldb_short_help
-
-        def get_long_help(self) -> str:
-            return self.args_parser.lldb_long_help
-
-        @abstractmethod
-        def create_args_parser(self, debugger: lldb.SBDebugger,
-                               bindings: dict) -> 'LLDBArgumentParser':
-            pass
-
-    class Subcommand(ABC):
-        """Subcommand protocol.
-
-        A conforming subclass should provide `create_args_subparser`.
-        """
-        @classmethod
-        @abstractmethod
-        def create_args_subparser(
-                cls, add_subparser: Type[ArgumentParser]) -> ArgumentParser:
-            pass
 
     # noinspection PyShadowingBuiltins
     def __init__(
@@ -123,8 +72,7 @@ class LLDBArgumentParser(ArgumentParser):
         self.set_defaults(command_handler=command_handler)
 
     def add_subcommands(self,
-                        *args: Tuple[Type['LLDBArgumentParser.Subcommand'],
-                                     Callable],
+                        *args: Tuple[Type['LLDBSubcommand'], Callable],
                         title=DEFAULT_SUBCOMMANDS_TITLE,
                         metavar=DEFAULT_SUBCOMMANDS_METAVAR) -> None:
         """Add one or more subcommands to a main command.
@@ -152,14 +100,16 @@ class LLDBArgumentParser(ArgumentParser):
         subparsers_action = self.add_subparsers(title=title, metavar=metavar)
 
         # An internal factory function to be passed to a Subcommand subclass.
+        # Here we change the default to add_help=True, so that subcommands can
+        # provide their own help option.
         # noinspection PyShadowingBuiltins
         def add_subparser(
                 name: str,
                 help: str,  # pylint: disable=redefined-builtin
                 *,
                 description: Optional[str] = None,
-                add_help=True,  # A default for subcommand
-                **kwargs: Any) -> ArgumentParser:
+                add_help=True,
+                **kwargs: Any) -> argparse.ArgumentParser:
             # A `help` string is displayed in the list of subcommands displayed
             # in a main command help text.  If `help` string is not provided,
             # the whole subcommand will be suppressed from the list of
@@ -175,7 +125,7 @@ class LLDBArgumentParser(ArgumentParser):
                                                 **kwargs)
 
         # Iterate over tuples, make a subcommand class create a subparser.
-        cls: Type[LLDBArgumentParser.Subcommand]
+        cls: Type[LLDBSubcommand]
         for (cls, func) in args:
             # noinspection PyTypeChecker
             subparser = cls.create_args_subparser(add_subparser)
@@ -186,3 +136,82 @@ class LLDBArgumentParser(ArgumentParser):
         # Add a single whitespace to align 'usage:' with the 'Syntax:' on the
         # previous line, as displayed by the LLDB `help` command.
         return ' ' + self.format_help()
+
+
+class LLDBCommandObject(ABC):
+    """LLDB Command object protocol.
+
+    See `CommandObjectType` <https://lldb.llvm.org/use/python-reference.html>.
+    """
+    @abstractmethod
+    def __init__(self, debugger: lldb.SBDebugger, bindings: dict):
+        pass
+
+    @abstractmethod
+    def __call__(self, debugger: lldb.SBDebugger, command: str,
+                 execution_context: lldb.SBExecutionContext,
+                 command_return: lldb.SBCommandReturnObject) -> None:
+        pass
+
+    @abstractmethod
+    def get_short_help(self) -> str:
+        return ''
+
+    @abstractmethod
+    def get_long_help(self) -> str:
+        return ''
+
+
+class LLDBCommand(LLDBCommandObject):
+    """LLDB Command abstract base type.
+
+    A conforming subclass should provide `create_args_parser`.
+    """
+    def __init__(self, debugger: lldb.SBDebugger, bindings: dict):
+        """Creates an argument parser for this command object."""
+        super().__init__(debugger, bindings)
+        self.args_parser = self.create_args_parser(debugger=debugger,
+                                                   bindings=bindings)
+
+    def __call__(self, debugger: lldb.SBDebugger, command: str,
+                 execution_context: lldb.SBExecutionContext,
+                 command_return: lldb.SBCommandReturnObject) -> None:
+        """Parses a command string, and runs a command handler."""
+        try:
+            args = self.args_parser.parse_args(shlex.split(command))
+        except argparse.ArgumentError as err:
+            command_return.SetError(str(err))
+            return
+
+        if not hasattr(args, 'command_handler'):
+            self.args_parser.print_usage(file=sys.stderr)
+            return
+
+        args.command_handler(debugger=debugger,
+                             execution_context=execution_context,
+                             command_return=command_return,
+                             **vars(args))
+
+    def get_short_help(self) -> str:
+        return self.args_parser.lldb_short_help
+
+    def get_long_help(self) -> str:
+        return self.args_parser.lldb_long_help
+
+    @abstractmethod
+    def create_args_parser(self, debugger: lldb.SBDebugger,
+                           bindings: dict) -> LLDBArgumentParser:
+        pass
+
+
+class LLDBSubcommand(ABC):
+    """Subcommand protocol.
+
+    A conforming subclass should provide `create_args_subparser`.
+    """
+    @classmethod
+    @abstractmethod
+    def create_args_subparser(
+        cls, add_subparser: Type[argparse.ArgumentParser]
+    ) -> argparse.ArgumentParser:
+        pass
