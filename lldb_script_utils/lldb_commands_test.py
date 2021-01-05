@@ -8,10 +8,10 @@ from typing import Type
 
 import lldb
 
-from lldb_script_utils.argparse import LLDBArgumentParser
+from lldb_script_utils.lldb_commands import LLDBArgumentParser
 from lldb_script_utils import debugger_utils
 
-TEST_PACKAGE = f'{__package__}.argparse_test'
+TEST_PACKAGE = f'{__package__}.command_utils_test'
 
 
 def _create_debugger_for_testing() -> lldb.SBDebugger:

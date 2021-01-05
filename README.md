@@ -28,7 +28,7 @@ To create an LLDB command with this package, you need to subclass the
 ```python
 import lldb
 from argparse import ArgumentParser
-from lldb_script_utils.argparse import LLDBArgumentParser
+from lldb_script_utils.lldb_commands import LLDBArgumentParser
 from lldb_script_utils import debugger_utils
 
 
