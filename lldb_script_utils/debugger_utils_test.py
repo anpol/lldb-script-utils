@@ -5,10 +5,11 @@ import unittest
 
 import lldb
 
-from .core import format_fully_qualified_type_name, format_command_script_add, \
-    format_type_summary_add, format_type_synthetic_add
+from .debugger_utils import format_fully_qualified_type_name,\
+    format_command_script_add,  format_type_summary_add, \
+    format_type_synthetic_add
 
-TEST_PACKAGE = f'{__package__}.core_test'
+TEST_PACKAGE = f'{__package__}.debugger_utils_test'
 TEST_COMMAND = 'testCommand'
 TEST_HELP = 'Help for testCommand'
 

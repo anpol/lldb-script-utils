@@ -9,7 +9,7 @@ from typing import Type
 import lldb
 
 from lldb_script_utils.argparse import LLDBArgumentParser
-from lldb_script_utils.core import format_command_script_add
+from lldb_script_utils.debugger_utils import format_command_script_add
 
 TEST_PACKAGE = f'{__package__}.argparse_test'
 

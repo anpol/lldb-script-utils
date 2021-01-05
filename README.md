@@ -29,7 +29,7 @@ To create an LLDB command with this package, you need to subclass the
 import lldb
 from argparse import ArgumentParser
 from lldb_script_utils.argparse import LLDBArgumentParser
-from lldb_script_utils.core import format_command_script_add
+from lldb_script_utils.debugger_utils import format_command_script_add
 
 
 class TestCommand1(LLDBArgumentParser.Command):
